@@ -212,6 +212,32 @@ var app = {
       left: $(window).width()/2 - $("#login").width()/2
     });
   },
+
+  getTweets:function() {
+    $.get("http://search.twitter.com/search.json?q=ajax",
+      app.showTweets,
+      'jsonp');
+  },
+
+  showTweets:function(data, textStatus, xhr) {
+    if ($('body').is(':not(:has(#tweets))')){
+      $('<div/>', {id: "tweets"}).appendTo("body");
+    }
+
+    $(data.results).each(function () {
+      $('<div/>', {
+        'class': 'tweet'
+      }).append($('<img/>', {
+        'src': this.profile_image_url
+      })).append($('<div/>', {
+        'class': 'from_user',
+        'text': this.from_user
+      })).append($('<div/>', {
+        'class': 'text',
+        'html': this.text
+      })).appendTo("#tweets");
+    });
+  }
 };
 
 jQuery(function() {
@@ -229,5 +255,6 @@ jQuery(function() {
   app.loadReport();
   app.showLoginForm();
 
+  app.getTweets();
 });
 
