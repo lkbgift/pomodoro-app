@@ -22,6 +22,7 @@ var CountdownTimer = {
 
     this.setupTimer();
     this.flashBar();
+    this.notifyServer();
   },
 
   setupTimer:function() {
@@ -85,6 +86,19 @@ var CountdownTimer = {
     var message = "Finished " + (this.isBreak ? this.minutes + " minute break." : "one pomodoro.");
     $('title').text(message);
     $('#timer-finished').text(message).fadeIn(1000);
+  },
+
+  notifyServer:function() {
+    $.ajax({
+      type        :   "POST",
+      url         :   "/timers.json",
+      data        :   JSON.stringify(CountdownTimer),
+      contentType :   "application/json",
+      dataType    :   "json",
+      success     :   function(data, textStatus, xhr) {
+        console.log("Timer request result: " + textStatus);
+      }   
+    }); 
   },
 };
 
