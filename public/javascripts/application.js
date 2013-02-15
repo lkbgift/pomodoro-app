@@ -115,55 +115,105 @@ jQuery.fn.extend({
 //     },
 //   });
 
+var app = {
+  setupTimerButtons: function() {
+     $('#button-25').click(function(e) {
+      e.preventDefault();
+      CountdownTimer.start(25);
+    });
+
+    $('#button-5-break').click(function(e) {
+      e.preventDefault();
+      CountdownTimer.start(5, true);
+    });
+
+    $('#button-25-break').click(function(e) {
+      e.preventDefault();
+      CountdownTimer.start(25, true);
+    });
+  },
+
+  setupTaskForms:function() {
+     // Make task list sortable
+    $('#tasks ul').sortable({handle:".handle"}).disableSelection();
+
+    // Wire up the add task button
+    $('#add').click(function(e) {
+      e.preventDefault();
+      var taskItem = $('#tasks ul li:first').clone();
+      taskItem.find('form')[0].reset();
+      taskItem.find('.completion a').resetTaskState();
+      $('#tasks ul').append(taskItem);
+      taskItem.find("input[type='text']:first").focus();
+    });
+
+    $('.completion a').live("click", function(e) {
+      e.preventDefault();
+      $(this).toggleTaskState();
+    });
+
+    // Create two extra task fields
+    $('#add').click().click();
+  },
+
+  loadReport:function() {
+    $('#report').load("/report.html .task-stats");
+  },
+
+  setupAjaxCallbacks:function() {
+    $('body').ajaxStart(function() {
+      $('#ajax-status').show().text("Loading...");
+    });
+    $('body').ajaxStop(function() {
+      $('#ajax-status').fadeOut();
+    });
+    $('body').ajaxError(function(event, xhr, ajaxOptions, thrownError) {
+      if (xhr.status === 401) {
+        if ($('#login').is(":hidden")) {
+          app.showLoginForm();
+        }
+        alert("Sorry, " + xhr.responseText.toLowerCase());
+        $('#login').find("input[type='text']:first").focus();
+      }
+      console.log("XHR Response: " + JSON.stringify(xhr));
+    });
+  },
+
+  showLoginForm:function() {
+    $(window).resize(app.centerLoginForm);
+    app.centerLoginForm();
+
+    var $form = $('form#login');
+    $form.show("slide", { direction: "up" });
+    $form.submit(function(e) {
+      e.preventDefault();
+      $.post($form.attr('action'), $form.serialize(), function() {
+        $form.hide("slide", { direction: "up" });
+      });
+    });
+  },
+
+  centerLoginForm: function() {
+    $("#login").css({
+      left: $(window).width()/2 - $("#login").width()/2
+    });
+  },
+};
+
 jQuery(function() {
 
-  // Simple Animation
-  //  $('#timer-bar').animate({width:1}, 5000).animate({width:600}, 5000);
+  app.setupAjaxCallbacks();
 
-  // Modify CSS
-  //   $('#timer-log div').css({opacity:0.3});
-
-  $('#button-25').click(function(e) {
-    e.preventDefault();
-    CountdownTimer.start(25);
-  });
-
-  $('#button-5-break').click(function(e) {
-    e.preventDefault();
-    CountdownTimer.start(5, true);
-  });
-
-  $('#button-25-break').click(function(e) {
-    e.preventDefault();
-    CountdownTimer.start(25, true);
-  });
-
-  // Make task list sortable
-  $('#tasks ul').sortable({handle:".handle"}).disableSelection();
-
-  // Wire up the add task button
-  $('#add').click(function(e) {
-    e.preventDefault();
-    var taskItem = $('#tasks ul li:first').clone();
-    taskItem.find('form')[0].reset();
-    taskItem.find('.completion a').resetTaskState();
-    $('#tasks ul').append(taskItem);
-    taskItem.find("input[type='text']:first").focus();
-  });
-
-  $('.completion a').live("click", function(e) {
-    e.preventDefault();
-    $(this).toggleTaskState();
-  });
-
-  // Create two extra task fields
-  $('#add').click().click();
-
+  app.setupTimerButtons();
+  app.setupTaskForms();
   // Aesthetic bottom div under tasks
   $('#task-footer').bg([0,0,10,10]);
 
   // Focus on the first text field
   $("input[type='text']:first").focus();
+
+  app.loadReport();
+  app.showLoginForm();
 
 });
 
